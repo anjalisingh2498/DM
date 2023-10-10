@@ -1,0 +1,74 @@
+import pymongo
+
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client["empdata"]
+
+def create_doc(collection_name, document):
+    collection = db[collection_name]
+    result = collection.insert_one(document)
+    return result.inserted_id
+
+def read_doc(collection_name, query={}):
+    collection = db[collection_name]
+    return list(collection.find(query))
+
+def update_doc(collection_name, query, new_values):
+    collection = db[collection_name]
+    result = collection.update_one(query, {"$set": new_values["$set"]})
+    return result.modified_count
+
+def delete_doc(collection_name, query):
+    collection = db[collection_name]
+    result = collection.delete_one(query)
+    return result.deleted_count
+
+def display_menu():
+    print("Menu")
+    print("1. Create Employee Document")
+    print("2. Read all the Document of the Employee")
+    print("3. Update the Employee Document")
+    print("4. Delete the data")
+    print("5. Exit")
+
+while True:
+    display_menu()
+    ch = int(input("Enter the choice: "))
+
+    if ch == 1:
+        name = input("Enter the Employee name: ")
+        empcode = int(input("Enter the Employee Code: "))
+        designation = input("Enter the designation of the Employee: ")
+        new_document = {
+            "Employee Name": name,
+            "Employee Code": empcode,
+            "Employee Designation": designation
+        }
+        created_id = create_doc("users", new_document)
+        print(f"Created document with ID: {created_id}")
+
+    elif ch == 2:
+        users = read_doc("users")
+        print("All Users")
+        for user in users:
+            print(user)
+
+    elif ch == 3:
+        name = input("Enter the Employee name: ")
+        designation = input("Enter the new designation: ")
+        update_query = {"Employee Name": name}
+        update_value = {"$set": {"Employee Designation": designation}}
+        modified_count = update_doc("users", update_query, update_value)
+        print(f"Modified {modified_count} document(s)")
+
+    elif ch == 4:
+        name = input("Enter the name to delete: ")
+        delete_query = {"Employee Name": name}
+        deleted_count = delete_doc("users", delete_query)
+        print(f"Deleted {deleted_count} document(s)")
+
+    elif ch == 5:
+        print("Exit")
+        break
+
+    else:
+        print("Invalid choice")
